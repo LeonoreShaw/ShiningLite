@@ -54,7 +54,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_meal_one" />
+            android:src="@drawable/s30" />
 
         <ImageView
             android:id="@+id/imgSampleTwo"
@@ -65,7 +65,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_meal_two" />
+            android:src="@drawable/s50" />
 
         <ImageView
             android:id="@+id/imgSampleThree"
@@ -74,7 +74,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_meal_three" />
+            android:src="@drawable/s60" />
     </LinearLayout>
 
     <Button

@@ -85,13 +85,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 }
             }
             R.id.imgSampleOne -> {
-                setViewAndDetect(getSampleImage(R.drawable.img_meal_one))
+                setViewAndDetect(getSampleImage(R.drawable.s30))
             }
             R.id.imgSampleTwo -> {
-                setViewAndDetect(getSampleImage(R.drawable.img_meal_two))
+                setViewAndDetect(getSampleImage(R.drawable.s50))
             }
             R.id.imgSampleThree -> {
-                setViewAndDetect(getSampleImage(R.drawable.img_meal_three))
+                setViewAndDetect(getSampleImage(R.drawable.s60))
             }
         }
     }
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             .build()
         val detector = ObjectDetector.createFromFileAndOptions(
             this,
-            "salad.tflite",
+            "labelmodel.tflite",
             options
         )
 
@@ -278,7 +278,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 photoFile?.also {
                     val photoURI: Uri = FileProvider.getUriForFile(
                         this,
-                        "org.tensorflow.codelabs.objectdetection.fileprovider",
+                        "com.xxm.shininglite.fileprovider",
                         it
                     )
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
