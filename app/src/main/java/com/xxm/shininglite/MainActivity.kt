@@ -153,6 +153,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }
     }
 
+
     /**
      * setViewAndDetect(bitmap: Bitmap)
      *      Set image to view and call object detection
