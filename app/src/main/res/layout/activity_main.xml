@@ -82,11 +82,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_gravity="center|bottom"
-        android:layout_margin="16dp"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:drawableLeft="@drawable/ic_camera"
         android:text="@string/tv_take_photo"
+        android:textAllCaps="false" />
+
+    <Button
+        android:id="@+id/captureImageFab2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="200dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginBottom="18dp"
+        android:drawableLeft="@drawable/ic_camera"
+        android:text="@string/tv_take_photo2"
         android:textAllCaps="false" />
 
 </RelativeLayout>
