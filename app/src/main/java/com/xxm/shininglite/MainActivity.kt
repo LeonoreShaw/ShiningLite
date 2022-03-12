@@ -11,9 +11,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
@@ -38,6 +36,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private lateinit var captureImageFab: Button
+    private lateinit var captureImageFab2: Button       //”相册“按钮
     private lateinit var inputImageView: ImageView
     private lateinit var imgSampleOne: ImageView
     private lateinit var imgSampleTwo: ImageView
@@ -49,7 +48,26 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        videoView=findViewById<View>(R.id.videoView) as VideoView?
+        if(mediaController == null){
+            mediaController = MediaController(this)
+            mediaController!!.setAnchorView(this.videoView)
+        }
+        videoView!!.setMediaController(mediaController)
+        videoView!!.setVideoURI(Uri.parse("android.resource://"+packageName+"/"+R.raw.fen30))
+        videoView!!.requestFocus()
+        videoView!!.start()
+        videoView!!.setOnCompletionListener {
+            Toast.makeText(applicationContext, "Video End", Toast.LENGTH_LONG).show()
+        }
+
+        videoView!!.setOnErrorListener{ mediaPlayer, i, i2 ->
+            Toast.makeText(applicationContext, "Error Occured", Toast.LENGTH_LONG).show()
+            false
+        }
+
         captureImageFab = findViewById(R.id.captureImageFab)
+        captureImageFab2 = findViewById(R.id.captureImageFab2)
         inputImageView = findViewById(R.id.imageView)
         imgSampleOne = findViewById(R.id.imgSampleOne)
         imgSampleTwo = findViewById(R.id.imgSampleTwo)
@@ -57,6 +75,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         tvPlaceholder = findViewById(R.id.tvPlaceholder)
 
         captureImageFab.setOnClickListener(this)
+        captureImageFab2.setOnClickListener(this)
         imgSampleOne.setOnClickListener(this)
         imgSampleTwo.setOnClickListener(this)
         imgSampleThree.setOnClickListener(this)
@@ -85,6 +104,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 } catch (e: ActivityNotFoundException) {
                     Log.e(TAG, e.message.toString())
                 }
+            }
+            R.id.captureImageFab2 -> {
+                setViewAndDetect(getSampleImage(R.drawable.s30))
             }
             R.id.imgSampleOne -> {
                 setViewAndDetect(getSampleImage(R.drawable.s30))
@@ -254,6 +276,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             inMutable = true
         })
     }
+
+
+//TODO 添加示例视频
+    /**
+     * getSampleImage():
+     *      Get image form drawable and convert to bitmap.
+     *      * get Sample Image():
+     *      * 从 drawable 中获取图像并转换为位图。
+     */
+//    private fun getSampleVideo(raw: Int): Bitmap {
+//        return BitmapFactory.decodeResource(resources, raw, BitmapFactory.Options().apply {
+//            inMutable = true
+//        })
+//    }
+
+
+
+    /**
+     *播放视频
+     */
+    var videoView: VideoView? = null
+    var mediaController: MediaController? = null
+
+
+
+
 
     /**
      * rotateImage():
