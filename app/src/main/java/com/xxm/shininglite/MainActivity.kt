@@ -74,6 +74,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * onClick(v: View?)
      *      Detect touches on the UI components
+     *      * onClick（v：查看？）
+     * 检测对 UI 组件的触摸
      */
     override fun onClick(v: View?) {
         when (v?.id) {
@@ -99,12 +101,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * runObjectDetection(bitmap: Bitmap)
      *      TFLite Object Detection function
+     *      * runObjectDetection（位图：位图）
+     * TFLite 物体检测功能
      */
     private fun runObjectDetection(bitmap: Bitmap) {
         // Step 1: Create TFLite's TensorImage object
+        // 第一步：创建 TFLite 的 TensorImage 对象
         val image = TensorImage.fromBitmap(bitmap)
 
         // Step 2: Initialize the detector object
+        // 第二步：初始化检测器对象
         val options = ObjectDetector.ObjectDetectorOptions.builder()
             .setMaxResults(5)
             .setScoreThreshold(0.3f)
@@ -116,18 +122,23 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         )
 
         // Step 3: Feed given image to the detector
+        // 第 3 步：将给定图像输入到检测器
         val results = detector.detect(image)
 
         // Step 4: Parse the detection result and show it
+        // 第四步：解析检测结果并展示
         val resultToDisplay = results.map {
             // Get the top-1 category and craft the display text
+            // 获取 top-1 类别并制作显示文本
             val category = it.categories.first()
             val text = "${category.label}, ${category.score.times(100).toInt()}%"
 
             // Create a data object to display the detection result
+            // 创建一个数据对象来显示检测结果
             DetectionResult(it.boundingBox, text)
         }
         // Draw the detection result on the bitmap and show it.
+        // 在位图上绘制检测结果并显示。
         val imgWithResult = drawDetectionResult(bitmap, resultToDisplay)
         runOnUiThread {
             inputImageView.setImageBitmap(imgWithResult)
@@ -137,6 +148,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * debugPrint(visionObjects: List<Detection>)
      *      Print the detection result to logcat to examine
+     *      * debugPrint(visionObjects: List<Detection>)
+     * 将检测结果打印到logcat进行检查
      */
     private fun debugPrint(results : List<Detection>) {
         for ((i, obj) in results.withIndex()) {
@@ -157,29 +170,39 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * setViewAndDetect(bitmap: Bitmap)
      *      Set image to view and call object detection
+     *      * setViewAndDetect（位图：位图）
+     * 设置图片查看和调用物体检测
      */
     private fun setViewAndDetect(bitmap: Bitmap) {
         // Display capture image
+        // 显示捕获图像
         inputImageView.setImageBitmap(bitmap)
         tvPlaceholder.visibility = View.INVISIBLE
 
         // Run ODT and display result
         // Note that we run this in the background thread to avoid blocking the app UI because
         // TFLite object detection is a synchronised process.
+        // 运行 ODT 并显示结果
+        // 请注意，我们在后台线程中运行它以避免阻塞应用程序 UI，因为
+        // TFLite 对象检测是一个同步过程。
         lifecycleScope.launch(Dispatchers.Default) { runObjectDetection(bitmap) }
     }
 
     /**
      * getCapturedImage():
      *      Decodes and crops the captured image from camera.
+     *      * 获取图像（）：
+     *解码并裁剪从相机捕获的图像。
      */
     private fun getCapturedImage(): Bitmap {
         // Get the dimensions of the View
+        // 获取视图的尺寸
         val targetW: Int = inputImageView.width
         val targetH: Int = inputImageView.height
 
         val bmOptions = BitmapFactory.Options().apply {
             // Get the dimensions of the bitmap
+            // 获取位图的尺寸
             inJustDecodeBounds = true
 
             BitmapFactory.decodeFile(currentPhotoPath, this)
@@ -188,9 +211,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             val photoH: Int = outHeight
 
             // Determine how much to scale down the image
+            // 确定图片缩小多少
             val scaleFactor: Int = max(1, min(photoW / targetW, photoH / targetH))
 
             // Decode the image file into a Bitmap sized to fill the View
+            // 将图像文件解码为大小以填充视图的位图
             inJustDecodeBounds = false
             inSampleSize = scaleFactor
             inMutable = true
@@ -221,6 +246,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * getSampleImage():
      *      Get image form drawable and convert to bitmap.
+     *      * get Sample Image():
+     *      * 从 drawable 中获取图像并转换为位图。
      */
     private fun getSampleImage(drawable: Int): Bitmap {
         return BitmapFactory.decodeResource(resources, drawable, BitmapFactory.Options().apply {
@@ -231,6 +258,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * rotateImage():
      *     Decodes and crops the captured image from camera.
+     *     * 旋转图像（）：
+     *解码并裁剪从相机捕获的图像。
      */
     private fun rotateImage(source: Bitmap, angle: Float): Bitmap {
         val matrix = Matrix()
@@ -244,10 +273,13 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * createImageFile():
      *     Generates a temporary image file for the Camera app to write to.
+     *     * 创建图像文件（）：
+     * 为相机应用程序生成一个临时图像文件以写入。
      */
     @Throws(IOException::class)
     private fun createImageFile(): File {
         // Create an image file name
+        // 创建图片文件名
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile(
@@ -256,6 +288,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             storageDir /* directory */
         ).apply {
             // Save a file: path for use with ACTION_VIEW intents
+            // 保存文件：用于 ACTION_VIEW 意图的路径
             currentPhotoPath = absolutePath
         }
     }
@@ -263,12 +296,16 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * dispatchTakePictureIntent():
      *     Start the Camera app to take a photo.
+     *     * dispatchTakePictureIntent():
+     * 启动相机应用拍照。
      */
     private fun dispatchTakePictureIntent() {
         Intent(MediaStore.ACTION_IMAGE_CAPTURE).also { takePictureIntent ->
             // Ensure that there's a camera activity to handle the intent
+            // 确保有一个相机活动来处理意图
             takePictureIntent.resolveActivity(packageManager)?.also {
                 // Create the File where the photo should go
+                //创建照片应该去的文件
                 val photoFile: File? = try {
                     createImageFile()
                 } catch (e: IOException) {
@@ -276,6 +313,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     null
                 }
                 // Continue only if the File was successfully created
+                // 仅在文件创建成功后继续
                 photoFile?.also {
                     val photoURI: Uri = FileProvider.getUriForFile(
                         this,
@@ -292,6 +330,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      * drawDetectionResult(bitmap: Bitmap, detectionResults: List<DetectionResult>
      *      Draw a box around each objects and show the object's name.
+     *      * drawDetectionResult（位图：位图，检测结果：列表<检测结果>
+     * 在每个对象周围画一个框并显示对象的名称。
      */
     private fun drawDetectionResult(
         bitmap: Bitmap,
@@ -304,6 +344,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         detectionResults.forEach {
             // draw bounding box
+            // 绘制边界框
             pen.color = Color.RED
             pen.strokeWidth = 8F
             pen.style = Paint.Style.STROKE
@@ -314,6 +355,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             val tagSize = Rect(0, 0, 0, 0)
 
             // calculate the right font size
+            // 计算正确的字体大小
             pen.style = Paint.Style.FILL_AND_STROKE
             pen.color = Color.YELLOW
             pen.strokeWidth = 2F
@@ -323,6 +365,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             val fontSize: Float = pen.textSize * box.width() / tagSize.width()
 
             // adjust the font size so texts are inside the bounding box
+            // 调整字体大小，使文本在边界框内
             if (fontSize < pen.textSize) pen.textSize = fontSize
 
             var margin = (box.width() - tagSize.width()) / 2.0F
@@ -340,5 +383,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 /**
  * DetectionResult
  *      A class to store the visualization info of a detected object.
+ *      * 检测结果
+ * 用于存储检测到的对象的可视化信息的类。
  */
 data class DetectionResult(val boundingBox: RectF, val text: String)
