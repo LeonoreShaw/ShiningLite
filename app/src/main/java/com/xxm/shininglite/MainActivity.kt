@@ -1,10 +1,18 @@
 package com.xxm.shininglite
 
 
+
+import android.graphics.Bitmap
+import android.os.Build
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.Toast
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.*
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
@@ -37,6 +45,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var captureImageFab: Button
     private lateinit var captureImageFab2: Button       //”相册“按钮
+    private lateinit var buttonF: Button       //”相册“按钮
     private lateinit var inputImageView: ImageView
     private lateinit var imgSampleOne: ImageView
     private lateinit var imgSampleTwo: ImageView
@@ -48,26 +57,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        videoView=findViewById<View>(R.id.videoView) as VideoView?
-        if(mediaController == null){
-            mediaController = MediaController(this)
-            mediaController!!.setAnchorView(this.videoView)
-        }
-        videoView!!.setMediaController(mediaController)
-        videoView!!.setVideoURI(Uri.parse("android.resource://"+packageName+"/"+R.raw.fen30))
-        videoView!!.requestFocus()
-        videoView!!.start()
-        videoView!!.setOnCompletionListener {
-            Toast.makeText(applicationContext, "Video End", Toast.LENGTH_LONG).show()
-        }
 
-        videoView!!.setOnErrorListener{ mediaPlayer, i, i2 ->
-            Toast.makeText(applicationContext, "Error Occured", Toast.LENGTH_LONG).show()
-            false
-        }
 
         captureImageFab = findViewById(R.id.captureImageFab)
         captureImageFab2 = findViewById(R.id.captureImageFab2)
+        buttonF = findViewById(R.id.buttonF)
         inputImageView = findViewById(R.id.imageView)
         imgSampleOne = findViewById(R.id.imgSampleOne)
         imgSampleTwo = findViewById(R.id.imgSampleTwo)
@@ -76,9 +70,20 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
         captureImageFab.setOnClickListener(this)
         captureImageFab2.setOnClickListener(this)
+        buttonF.setOnClickListener(this)
         imgSampleOne.setOnClickListener(this)
         imgSampleTwo.setOnClickListener(this)
         imgSampleThree.setOnClickListener(this)
+
+
+        val permissions = arrayOf(
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.READ_EXTERNAL_STORAGE"
+        )
+        if (Build.VERSION.SDK_INT >= 23) {
+            requestPermissions(permissions, 1)
+        }
+
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -96,6 +101,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
      *      * onClick（v：查看？）
      * 检测对 UI 组件的触摸
      */
+    @SuppressLint("SdCardPath")
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.captureImageFab -> {
@@ -116,6 +122,54 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
             R.id.imgSampleThree -> {
                 setViewAndDetect(getSampleImage(R.drawable.s60))
+            }
+            R.id.buttonF -> {
+                val mmr = MediaMetadataRetriever() //实例化MediaMetadataRetriever对象
+                val file =
+                    File("/sdcard/Movies/fun.mp4") //实例化File对象，文件路径为/storage/sdcard/Movies/music1.mp4
+                if (file.exists()) {
+                    mmr.setDataSource(file.absolutePath) //设置数据源为该文件对象指定的绝对路径
+//                val bitmap = mmr.frameAtTime //获得视频第一帧的Bitmap对象           27067
+
+                    /**
+                     *           获取视频相关信息
+                     *           /sdcard/Movies/fun.mp4
+                     */
+                    //获取视频时长，单位：毫秒(ms)            800043ms
+                    val totalTime: String? =
+                        mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
+                    //获取视频帧数                         24000Frames
+                    val frameCount: String? =
+                        mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_FRAME_COUNT)
+                    //获取视频宽度（单位：px）               480px
+                    val width: String? =
+                        mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                    //获取视频高度（单位：px）               360px
+                    val high: String? =
+                        mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+
+
+
+
+//                    val bitmap = mmr.getFrameAtIndex( 1) //index为帧序号
+                    val bitmaps: MutableList<Bitmap> = mmr.getFramesAtIndex(10,10)
+
+                    if (bitmaps[2] != null) {
+                        setViewAndDetect(bitmaps[3])
+//                        inputImageView.setImageBitmap(bitmaps[2]) //设置ImageView显示的图片
+                        Toast.makeText(this@MainActivity, "获取视频帧成功", Toast.LENGTH_SHORT)
+                            .show() //获取视频帧成功，弹出消息提示框
+                    } else {
+                        Toast.makeText(this@MainActivity, "获取视频帧失败", Toast.LENGTH_SHORT)
+                            .show() //获取视频帧失败，弹出消息提示框
+                    }
+
+
+
+                } else {
+                    Toast.makeText(this@MainActivity, "文件不存在", Toast.LENGTH_SHORT)
+                        .show() //文件不存在时，弹出消息提示框
+                }
             }
         }
     }
