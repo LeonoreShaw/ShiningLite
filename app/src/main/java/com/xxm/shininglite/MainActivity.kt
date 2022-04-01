@@ -126,7 +126,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.buttonF -> {
                 val mmr = MediaMetadataRetriever() //实例化MediaMetadataRetriever对象
                 val file =
-                    File("/sdcard/Movies/fun.mp4") //实例化File对象，文件路径为/storage/sdcard/Movies/music1.mp4
+                    File("/sdcard/AndroidShiningLite/fun.mp4") //实例化File对象，文件路径为/storage/sdcard/Movies/music1.mp4
                 if (file.exists()) {
                     mmr.setDataSource(file.absolutePath) //设置数据源为该文件对象指定的绝对路径
 //                val bitmap = mmr.frameAtTime //获得视频第一帧的Bitmap对象           27067
@@ -150,13 +150,17 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
 
-
+//                    val f:Int = frameCount!!.toInt()
 //                    val bitmap = mmr.getFrameAtIndex( 1) //index为帧序号
-                    val bitmaps: MutableList<Bitmap> = mmr.getFramesAtIndex(10,10)
+                    val bitmaps: MutableList<Bitmap> = mmr.getFramesAtIndex(0, 200)
 
                     if (bitmaps[2] != null) {
-                        setViewAndDetect(bitmaps[3])
-//                        inputImageView.setImageBitmap(bitmaps[2]) //设置ImageView显示的图片
+//                        for(i in 1..500){
+                            inputImageView.setImageBitmap(bitmaps[50]) //设置ImageView显示的图片
+//                            setViewAndDetect(bitmaps[50])
+//                        }
+
+//                        inputImageView.setImageBitmap(bitmaps[8]) //设置ImageView显示的图片
                         Toast.makeText(this@MainActivity, "获取视频帧成功", Toast.LENGTH_SHORT)
                             .show() //获取视频帧成功，弹出消息提示框
                     } else {
@@ -350,8 +354,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     /**
      *播放视频
      */
-    var videoView: VideoView? = null
-    var mediaController: MediaController? = null
+//    var videoView: VideoView? = null
+//    var mediaController: MediaController? = null
 
 
 
