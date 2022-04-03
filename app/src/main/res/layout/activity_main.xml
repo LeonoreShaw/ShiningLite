@@ -28,14 +28,19 @@
             android:contentDescription="@null"
             android:scaleType="fitCenter" />
 
-<!--        <VideoView-->
-<!--            android:id="@+id/videoView"-->
-<!--            android:layout_width="match_parent"-->
-<!--            android:layout_height="466dp"-->
-<!--            android:layout_marginStart="10dp"-->
-<!--            android:layout_marginTop="10dp"-->
-<!--            android:layout_marginEnd="10dp"-->
-<!--            android:layout_marginBottom="10dp" />-->
+        <!--        <androidx.camera.view.PreviewView-->
+        <!--            android:id="@+id/viewFinder"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="match_parent" />-->
+
+        <!--        <VideoView-->
+        <!--            android:id="@+id/videoView"-->
+        <!--            android:layout_width="match_parent"-->
+        <!--            android:layout_height="466dp"-->
+        <!--            android:layout_marginStart="10dp"-->
+        <!--            android:layout_marginTop="10dp"-->
+        <!--            android:layout_marginEnd="10dp"-->
+        <!--            android:layout_marginBottom="10dp" />-->
 
     </FrameLayout>
 
@@ -53,7 +58,7 @@
         android:id="@+id/llSampleImage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/captureImageFab"
+        android:layout_above="@+id/llSampleImage2"
         android:gravity="center_horizontal"
         android:orientation="horizontal">
 
@@ -87,42 +92,58 @@
             android:src="@drawable/s60" />
     </LinearLayout>
 
-    <Button
-        android:id="@+id/captureImageFab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:drawableLeft="@drawable/ic_camera"
-        android:text="@string/tv_take_photo"
-        android:textAllCaps="false" />
 
-    <Button
-        android:id="@+id/captureImageFab2"
+    <LinearLayout
+        android:id="@+id/llSampleImage2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="200dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="18dp"
-        android:drawableLeft="@drawable/ic_camera"
-        android:text="@string/tv_take_photo2"
-        android:textAllCaps="false" />
-    <Button
-        android:id="@+id/buttonF"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="100dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginBottom="18dp"
-        android:text="buttonF"
-        android:textAllCaps="false" />
+        android:gravity="center_horizontal"
+        android:orientation="horizontal">
 
+        <Button
+            android:id="@+id/captureImageFab"
+            android:layout_width="50dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="18dp"
+            android:drawableLeft="@drawable/ic_camera"
+
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/captureImageFab2"
+            android:layout_width="70dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="18dp"
+
+            android:text="@string/tv_take_photo2"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/buttonF"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="0dp"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="18dp"
+            android:text="视频"
+            android:textAllCaps="false" />
+
+        <Button
+            android:id="@+id/CameraX"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="18dp"
+            android:layout_marginStart="5dp"
+            android:layout_marginEnd="0dp"
+            android:text="CameraX"
+            android:textAllCaps="false" />
+    </LinearLayout>
 
 </RelativeLayout>

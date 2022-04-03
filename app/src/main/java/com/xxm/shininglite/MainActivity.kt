@@ -2,11 +2,6 @@ package com.xxm.shininglite
 
 
 
-import android.graphics.Bitmap
-import android.os.Build
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.Toast
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -14,6 +9,7 @@ import android.content.Intent
 import android.graphics.*
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -33,6 +29,7 @@ import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -52,12 +49,21 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     private lateinit var imgSampleThree: ImageView
     private lateinit var tvPlaceholder: TextView
     private lateinit var currentPhotoPath: String
+//    private lateinit var binding: ActivityMainBinding
+//    private lateinit var objectDetector: ObjectDetector
+//    private lateinit var cameraProviderFuture: ListenableFuture<ProcessCameraProvider>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
+//        binding = DataBindingUtil.setContentView(this, R.layout.viewFinder)
+//
+//        cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+//        cameraProviderFuture.addListener({
+//            val cameraProvider = cameraProviderFuture.get()
+//            // Bind camera provider
+//        }, ContextCompat.getMainExecutor(this))
 
         captureImageFab = findViewById(R.id.captureImageFab)
         captureImageFab2 = findViewById(R.id.captureImageFab2)
@@ -148,25 +154,60 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                     val high: String? =
                         mmr.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
 
+                    /**
+                     ** $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+                     ** ###################################################################################
+                     **      $$$$$$$$$$$$$$$##   实现位图延迟播放    ##$$$$$$$$$$$$$$$
+                     ** ###################################################################################
+                     ** $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+                     **/
+
+                    val f:Int = frameCount!!.toInt()
+
+                    val bitmaps = mmr.getFramesAtIndex(1, 100)
+                    thread {
+                        bitmaps.forEach { bm ->
+                            runOnUiThread { setViewAndDetect(bm) }
+                            Thread.sleep(100)
+                        }
+                    }
+
+
+
+//
+//                    val bitmaps = mmr.getFrameAtIndex(10)
+//
+//                    inputImageView.setImageBitmap(bitmaps)
 
 
 //                    val f:Int = frameCount!!.toInt()
 //                    val bitmap = mmr.getFrameAtIndex( 1) //index为帧序号
-                    val bitmaps: MutableList<Bitmap> = mmr.getFramesAtIndex(0, 200)
+//                    if (frameCount != null) {
+//                        val f = frameCount.toInt()
+//                        for (i in 1..f step 100){
+//                            val bitmaps = mmr.getFrameAtIndex(i)
+//                            if (bitmaps != null) {
+//                                inputImageView.setImageBitmap(bitmaps)
+////                                setViewAndDetect(bitmaps)
+//                            }
+//                            Thread.sleep(1000) // 假装我们正在计算
+//                        }
+//                    }
 
-                    if (bitmaps[2] != null) {
+
+//                    if (bitmaps != null) {
 //                        for(i in 1..500){
-                            inputImageView.setImageBitmap(bitmaps[50]) //设置ImageView显示的图片
-//                            setViewAndDetect(bitmaps[50])
+//                            inputImageView.setImageBitmap(bitmaps[50]) //设置ImageView显示的图片
+//
 //                        }
 
-//                        inputImageView.setImageBitmap(bitmaps[8]) //设置ImageView显示的图片
-                        Toast.makeText(this@MainActivity, "获取视频帧成功", Toast.LENGTH_SHORT)
-                            .show() //获取视频帧成功，弹出消息提示框
-                    } else {
-                        Toast.makeText(this@MainActivity, "获取视频帧失败", Toast.LENGTH_SHORT)
-                            .show() //获取视频帧失败，弹出消息提示框
-                    }
+//                        inputImageView.setImageBitmap(bitmaps) //设置ImageView显示的图片
+//                        Toast.makeText(this@MainActivity, "获取视频帧成功", Toast.LENGTH_SHORT)
+//                            .show() //获取视频帧成功，弹出消息提示框
+//                    } else {
+//                        Toast.makeText(this@MainActivity, "获取视频帧失败", Toast.LENGTH_SHORT)
+//                            .show() //获取视频帧失败，弹出消息提示框
+//                    }
 
 
 
@@ -177,6 +218,51 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             }
         }
     }
+
+//
+//    /**
+//     * 相机预览
+//     *
+//     */
+//    @SuppressLint("UnsafeOptInUsageError")
+//    private fun bindPreview(cameraProvider: ProcessCameraProvider) {
+//
+//        val preview = Preview.Builder().build()
+//
+//        val cameraSelector = CameraSelector.Builder()
+//            .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+//            .build()
+//
+//        preview.setSurfaceProvider(binding.previewView.surfaceProvider)
+//
+//        val imageAnalysis = ImageAnalysis.Builder()
+//            .setTargetResolution(Size(1280, 720))
+//            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+//            .build()
+//
+//        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this)) { imageProxy ->
+//
+//            val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+//            val image = imageProxy.image
+//
+//            if(image != null){
+//                val processImage = InputImage.fromMediaImage(image, rotationDegrees)
+//
+//                objectDetector
+//                    .process(processImage)
+//                    .addOnSuccessListener{
+//                        imageProxy.close()
+//                    }
+//            }
+//
+//            cameraProvider.bindToLifecycle(this as LifecycleOwner, cameraSelector, imageAnalysis, preview)
+//        }
+//
+//
+//    }
+
+
+
 
     /**
      * runObjectDetection(bitmap: Bitmap)
