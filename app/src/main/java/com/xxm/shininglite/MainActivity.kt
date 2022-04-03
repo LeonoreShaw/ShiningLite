@@ -163,12 +163,18 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                      **/
 
                     val f:Int = frameCount!!.toInt()
+//                    val bitmaps:<MutableList>Bitmaps=[]
+//                    for(i in 1..f){
+//                        val bitmapHumans = mmr.getFrameAtIndex(i)
+//                        val bitmaps[i] = bitmapHuman
+//
+//                    }
 
-                    val bitmaps = mmr.getFramesAtIndex(1, 100)
+                    val bitmaps = mmr.getFramesAtIndex(800, 100)
                     thread {
                         bitmaps.forEach { bm ->
-                            runOnUiThread { setViewAndDetect(bm) }
-                            Thread.sleep(100)
+                            runOnUiThread { runObjectDetection(bm) }
+                            Thread.sleep(250)
                         }
                     }
 
@@ -537,7 +543,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         detectionResults.forEach {
             // draw bounding box
             // 绘制边界框
-            pen.color = Color.RED
+            pen.color = Color.GREEN
             pen.strokeWidth = 8F
             pen.style = Paint.Style.STROKE
             val box = it.boundingBox
