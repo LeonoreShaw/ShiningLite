@@ -1,6 +1,7 @@
 package com.xxm.shininglite
 
 
+import androidx.camera.lifecycle.ProcessCameraProvider
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -14,9 +15,16 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
+import android.view.FocusFinder
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import androidx.lifecycle.lifecycleScope
@@ -25,8 +33,10 @@ import kotlinx.coroutines.launch
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.task.vision.detector.Detection
 import org.tensorflow.lite.task.vision.detector.ObjectDetector
+import wseemann.media.FFmpegMediaMetadataRetriever
 import java.io.File
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.concurrent.thread
@@ -42,11 +52,14 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
     private lateinit var captureImageFab: Button
     private lateinit var captureImageFab2: Button       //”相册“按钮
-    private lateinit var buttonF: Button       //”相册“按钮
+    private lateinit var buttonF: Button       //”视频“按钮
+    private lateinit var CameraX: Button       //”CameraX“按钮
+
     private lateinit var inputImageView: ImageView
     private lateinit var imgSampleOne: ImageView
     private lateinit var imgSampleTwo: ImageView
     private lateinit var imgSampleThree: ImageView
+    private lateinit var viewFinder: PreviewView
     private lateinit var tvPlaceholder: TextView
     private lateinit var currentPhotoPath: String
 //    private lateinit var binding: ActivityMainBinding
@@ -73,6 +86,11 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         imgSampleTwo = findViewById(R.id.imgSampleTwo)
         imgSampleThree = findViewById(R.id.imgSampleThree)
         tvPlaceholder = findViewById(R.id.tvPlaceholder)
+        viewFinder = findViewById(R.id.viewFinder)
+        CameraX = findViewById(R.id.CameraX)
+
+
+
 
         captureImageFab.setOnClickListener(this)
         captureImageFab2.setOnClickListener(this)
@@ -80,6 +98,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         imgSampleOne.setOnClickListener(this)
         imgSampleTwo.setOnClickListener(this)
         imgSampleThree.setOnClickListener(this)
+        CameraX.setOnClickListener(this)
+
+
 
 
         val permissions = arrayOf(
@@ -129,6 +150,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.imgSampleThree -> {
                 setViewAndDetect(getSampleImage(R.drawable.s60))
             }
+            R.id.CameraX -> {
+                startCamera()
+            }
             R.id.buttonF -> {
                 val mmr = MediaMetadataRetriever() //实例化MediaMetadataRetriever对象
                 val file =
@@ -163,20 +187,32 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                      **/
 
                     val f:Int = frameCount!!.toInt()
-//                    val bitmaps:<MutableList>Bitmaps=[]
+//                    val bitmaps:<MutableList>Bitmaps =
 //                    for(i in 1..f){
 //                        val bitmapHumans = mmr.getFrameAtIndex(i)
 //                        val bitmaps[i] = bitmapHuman
 //
 //                    }
+//
+//                    val fmmr = FFmpegMediaMetadataRetriever()
+//                    fmmr.setDataSource(file.absolutePath)
+//                    fmmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ALBUM)
+//                    fmmr.extractMetadata(FFmpegMediaMetadataRetriever.METADATA_KEY_ARTIST)
+//                    val b = fmmr.getFrameAtTime(2000000, FFmpegMediaMetadataRetriever.OPTION_CLOSEST
+//                    ) // frame at 2 seconds
+//
+//                    val artwork = mmr.embeddedPicture
+//
+//                    fmmr.release()
 
-                    val bitmaps = mmr.getFramesAtIndex(800, 100)
+                    val bitmaps = mmr.getFramesAtIndex(1, 50)
                     thread {
                         bitmaps.forEach { bm ->
                             runOnUiThread { runObjectDetection(bm) }
-                            Thread.sleep(250)
+                            Thread.sleep(100)
                         }
                     }
+                    mmr.release()
 
 
 
@@ -270,6 +306,75 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
 
+
+
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            // Used to bind the lifecycle of cameras to the lifecycle owner
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+
+            // Preview
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                }
+
+            // Select back camera as a default
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+
+                // Bind use cases to camera
+                cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview)
+
+            } catch(exc: Exception) {
+                Log.e(TAG, "Use case binding failed", exc)
+            }
+
+        }, ContextCompat.getMainExecutor(this))
+    }
+
+
+
+//    private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
+//
+//        private fun ByteBuffer.toByteArray(): ByteArray {
+//            rewind()    // Rewind the buffer to zero
+//            val data = ByteArray(remaining())
+//            get(data)   // Copy the buffer into a byte array
+//            return data // Return the byte array
+//        }
+//
+//        override fun analyze(image: ImageProxy) {
+//
+//            val buffer = image.planes[0].buffer
+//            val data = buffer.toByteArray()
+//            val pixels = data.map { it.toInt() and 0xFF }
+//            val luma = pixels.average()
+//
+//            listener(luma)
+//
+//            image.close()
+//        }
+//    }
+
+
+
+
+
+
+
+
+
+
+
+
     /**
      * runObjectDetection(bitmap: Bitmap)
      *      TFLite Object Detection function
@@ -289,7 +394,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             .build()
         val detector = ObjectDetector.createFromFileAndOptions(
             this,
-            "labelmodel.tflite",
+            "model.tflite",
             options
         )
 
