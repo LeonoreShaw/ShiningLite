@@ -1,8 +1,6 @@
 package com.xxm.shininglite
 
 
-import androidx.camera.lifecycle.ProcessCameraProvider
-
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -15,14 +13,14 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
-import android.view.FocusFinder
 import android.view.View
-import android.widget.*
+import android.widget.Button
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.CameraSelector
-import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
-import androidx.camera.core.Preview
+import androidx.camera.core.*
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
@@ -33,15 +31,16 @@ import kotlinx.coroutines.launch
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.task.vision.detector.Detection
 import org.tensorflow.lite.task.vision.detector.ObjectDetector
-import wseemann.media.FFmpegMediaMetadataRetriever
 import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.concurrent.thread
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 import kotlin.math.max
 import kotlin.math.min
+
 
 class MainActivity : AppCompatActivity(), View.OnClickListener {
     companion object {
@@ -157,6 +156,33 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                 val mmr = MediaMetadataRetriever() //实例化MediaMetadataRetriever对象
                 val file =
                     File("/sdcard/AndroidShiningLite/fun.mp4") //实例化File对象，文件路径为/storage/sdcard/Movies/music1.mp4
+/**
+ *
+ * $$$$$$$$$$$$$$$$$$$$$$$帧率
+*
+ */
+
+//                val extractor = MediaExtractor()
+//                var frameRate = 24 //may be default
+//                try {
+//                    //Adjust data source as per the requirement if file, URI, etc.
+//                    extractor.setDataSource(file.absolutePath)
+//                    val numTracks = extractor.trackCount
+//                    for (i in 0 until numTracks) {
+//                        val format = extractor.getTrackFormat(i)
+//                        val mime = format.getString(MediaFormat.KEY_MIME)
+//                        if (mime!!.startsWith("video/")) {
+//                            if (format.containsKey(MediaFormat.KEY_FRAME_RATE)) {
+//                                frameRate = format.getInteger(MediaFormat.KEY_FRAME_RATE)
+//                            }
+//                        }
+//                    }
+//                }finally {
+//                    //Release stuff
+//                    extractor.release();
+//                }
+//
+
                 if (file.exists()) {
                     mmr.setDataSource(file.absolutePath) //设置数据源为该文件对象指定的绝对路径
 //                val bitmap = mmr.frameAtTime //获得视频第一帧的Bitmap对象           27067
@@ -186,7 +212,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                      ** $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
                      **/
 
-                    val f:Int = frameCount!!.toInt()
 //                    val bitmaps:<MutableList>Bitmaps =
 //                    for(i in 1..f){
 //                        val bitmapHumans = mmr.getFrameAtIndex(i)
@@ -205,14 +230,53 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 //
 //                    fmmr.release()
 
-                    val bitmaps = mmr.getFramesAtIndex(1, 50)
-                    thread {
-                        bitmaps.forEach { bm ->
-                            runOnUiThread { runObjectDetection(bm) }
-                            Thread.sleep(100)
-                        }
+//                    val frameCounts : Int? = frameCount.toIntOrNull()
+                    val f:Int = frameCount!!.toInt()
+                    val bitmap = mmr.getFrameAtIndex(0)
+                    var detectResult = bitmap?.let { runObjectDetection(it) }
+                    val imgWithResult =
+                        detectResult?.let { drawDetectionResult(bitmap!!, it) }
+                    runOnUiThread {
+                        inputImageView.setImageBitmap(imgWithResult)
                     }
-                    mmr.release()
+                    for(i in 1..f){
+                        val bitmaps = mmr.getFrameAtIndex(i)
+                        if(i%4 == 0){
+                            detectResult = bitmaps?.let { runObjectDetection(it) }
+                        }
+                        val latestDetectionResult = detectResult
+                        val imgWithResult =
+                            latestDetectionResult?.let { drawDetectionResult(bitmaps!!, it) }
+                        runOnUiThread {
+                            inputImageView.setImageBitmap(imgWithResult)
+                        }
+//                        mmr.release()
+
+//                        if(i%4 ==0){
+//                            if (bitmaps != null) {
+////                                val latestDetectionResult = runObjectDetection(bitmaps)
+//                                val imgWithResult =
+//                                    latestDetectionResult?.let { drawDetectionResult(bitmaps, it) }
+//                                runOnUiThread {
+//                                    inputImageView.setImageBitmap(imgWithResult)
+//                                }
+//                            }
+//                        }else{
+//                            val imgWithResult =
+//                                latestDetectionResult?.let { drawDetectionResult(bitmaps, it) }
+//                            runOnUiThread {
+//                                inputImageView.setImageBitmap(imgWithResult)
+//                            }
+//                        }
+                    }
+//                    val bitmaps = mmr.getFramesAtIndex(1, 10)
+//                    thread {
+//                        bitmaps.forEach { bm ->
+//                            runOnUiThread { runObjectDetection(bm) }
+//                            Thread.sleep(100)
+//                        }
+//                    }
+//                    mmr.release()
 
 
 
@@ -308,61 +372,163 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
 
 
 
+//    private fun startCamera() {
+//        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+//
+//        cameraProviderFuture.addListener({
+//            // Used to bind the lifecycle of cameras to the lifecycle owner
+//            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+//
+//            // Preview
+//            val preview = Preview.Builder()
+//                .build()
+//                .also {
+//                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+//                }
+//
+//            val imageAnalyzer = ImageAnalysis.Builder().build()
+//            imageAnalyzer.setAnalyzer(cameraExecutor, LiteAnalyzer())
+//            // Select back camera as a default
+//            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+//
+//            try {
+//                // Unbind use cases before rebinding
+//                cameraProvider.unbindAll()
+//
+//                // Bind use cases to camera
+//                cameraProvider.bindToLifecycle(
+//                    this, cameraSelector, preview)
+//
+//            } catch(exc: Exception) {
+//                Log.e(TAG, "Use case binding failed", exc)
+//            }
+//
+//        }, ContextCompat.getMainExecutor(this))
+//    }
+
+
+    /**
+     * ********@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+     */
+
+//    class LiteAnalyzer : ImageAnalysis.Analyzer {
+//        // TOD0: load Model below
+//        // toBitmap .
+//        private fun toBitmap(image: Image): Bitmap {}
+//        fun Detector(bitmapImage: Bitmap?) {}
+//        protected var tflite: Interpreter? = null
+//
+//        @override
+//        override fun analyze(@NonNulL imageProxy: ImageProxy?) {
+//        }
+//    }
+//
+//
+//    @Throws(ExecutionException::class, InterruptedException::class)
+//    private fun startCamera() {
+//        Log.d(TAG, "-start Camera function.")
+//        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+//        Log.d(TAG, "-got Application Instance.")
+//        // why Runnable change the lifeOwnerobject
+//        cameraProviderFuture.addListener({
+//            try {
+//                val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+////                 Preview
+//            val preview = Preview.Builder()
+//                .build()
+//                .also {
+//                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+//                }
+//                val imageAnalyzer = ImageAnalysis.Builder()
+//                    .build()
+//                    .also{it.setAnalyzer(cameraExecutor, LiteAnalyzer())}
+////                imageAnalyzer.setAnalyzer(cameraExecutor, LiteAnalyzer())
+//                cameraProvider.unbindALl()
+//                cameraProvider.bindToLifecycle(
+//                    this,
+//                    CameraSelector.DEFAULT_BACK_CAMERA,
+//                    preview, imageAnalyzer
+//                )
+//            } catch (e: ExecutionException) {
+//                Log.d(TAG, "2 - printStackTrace")
+//                e.printStackTrace()
+//            } catch (e: InterruptedException) {
+//                Log.d(TAG, "2 - printStackTrace")
+//                e.printStackTrace()
+//            }
+//        }, ContextCompat.getMainExecutor(this))
+//    }
+    /**
+     * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+     */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-
         cameraProviderFuture.addListener({
             // Used to bind the lifecycle of cameras to the lifecycle owner
             val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
-
             // Preview
             val preview = Preview.Builder()
                 .build()
                 .also {
                     it.setSurfaceProvider(viewFinder.surfaceProvider)
                 }
-
+            val cameraExecutor: ExecutorService = Executors.newSingleThreadExecutor()
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .build()
+                .also {
+                    it.setAnalyzer(cameraExecutor, LuminosityAnalyzer())
+                }
             // Select back camera as a default
             val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
             try {
                 // Unbind use cases before rebinding
                 cameraProvider.unbindAll()
-
                 // Bind use cases to camera
                 cameraProvider.bindToLifecycle(
-                    this, cameraSelector, preview)
+                    this, cameraSelector, preview, imageAnalyzer)
 
             } catch(exc: Exception) {
                 Log.e(TAG, "Use case binding failed", exc)
             }
-
         }, ContextCompat.getMainExecutor(this))
     }
 
+    private class LuminosityAnalyzer : ImageAnalysis.Analyzer {
+
+        private fun ByteBuffer.toByteArray(): ByteArray {
+            rewind()    // Rewind the buffer to zero
+            val data = ByteArray(remaining())
+            get(data)   // Copy the buffer into a byte array
+            return data // Return the byte array
+        }
+
+        override fun analyze(image: ImageProxy) {
+
+            val buffer = image.planes[0].buffer
+            val data = buffer.toByteArray()
+            val pixels = data.map { it.toInt() and 0xFF }
+            val luma = pixels.average()
 
 
-//    private class LuminosityAnalyzer(private val listener: LumaListener) : ImageAnalysis.Analyzer {
-//
-//        private fun ByteBuffer.toByteArray(): ByteArray {
-//            rewind()    // Rewind the buffer to zero
-//            val data = ByteArray(remaining())
-//            get(data)   // Copy the buffer into a byte array
-//            return data // Return the byte array
-//        }
-//
-//        override fun analyze(image: ImageProxy) {
-//
-//            val buffer = image.planes[0].buffer
-//            val data = buffer.toByteArray()
-//            val pixels = data.map { it.toInt() and 0xFF }
-//            val luma = pixels.average()
-//
-//            listener(luma)
-//
-//            image.close()
-//        }
-//    }
+
+            image.close()
+        }
+    }
 
 
 
@@ -381,7 +547,49 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
      *      * runObjectDetection（位图：位图）
      * TFLite 物体检测功能
      */
-    private fun runObjectDetection(bitmap: Bitmap) {
+    private fun runObjectDetection(bitmap: Bitmap): List<DetectionResult> {
+        // Step 1: Create TFLite's TensorImage object
+        // 第一步：创建 TFLite 的 TensorImage 对象
+        val image = TensorImage.fromBitmap(bitmap)
+
+        // Step 2: Initialize the detector object
+        // 第二步：初始化检测器对象
+        val options = ObjectDetector.ObjectDetectorOptions.builder()
+            .setMaxResults(5)
+            .setScoreThreshold(0.3f)
+            .build()
+        val detector = ObjectDetector.createFromFileAndOptions(
+            this,
+            "model.tflite",
+            options
+        )
+
+        // Step 3: Feed given image to the detector
+        // 第 3 步：将给定图像输入到检测器
+        val results = detector.detect(image)
+
+        // Step 4: Parse the detection result and show it
+        // 第四步：解析检测结果并展示
+        val resultToDisplay = results.map {
+            // Get the top-1 category and craft the display text
+            // 获取 top-1 类别并制作显示文本
+            val category = it.categories.first()
+            val text = "${category.label}, ${category.score.times(100).toInt()}%"
+
+            // Create a data object to display the detection result
+            // 创建一个数据对象来显示检测结果
+            DetectionResult(it.boundingBox, text)
+        }
+        val latestDetectionResult = resultToDisplay
+        // Draw the detection result on the bitmap and show it.
+        // 在位图上绘制检测结果并显示。
+//        val imgWithResult = drawDetectionResult(bitmap, latestDetectionResult)
+//        runOnUiThread {
+//            inputImageView.setImageBitmap(imgWithResult)
+//        }
+        return latestDetectionResult
+    }
+    private fun runObjectDetection2(bitmap: Bitmap) {
         // Step 1: Create TFLite's TensorImage object
         // 第一步：创建 TFLite 的 TensorImage 对象
         val image = TensorImage.fromBitmap(bitmap)
@@ -421,7 +629,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             inputImageView.setImageBitmap(imgWithResult)
         }
     }
-
     /**
      * debugPrint(visionObjects: List<Detection>)
      *      Print the detection result to logcat to examine
@@ -462,7 +669,7 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // 运行 ODT 并显示结果
         // 请注意，我们在后台线程中运行它以避免阻塞应用程序 UI，因为
         // TFLite 对象检测是一个同步过程。
-        lifecycleScope.launch(Dispatchers.Default) { runObjectDetection(bitmap) }
+        lifecycleScope.launch(Dispatchers.Default) { runObjectDetection2(bitmap) }
     }
 
     /**
@@ -690,3 +897,5 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
  * 用于存储检测到的对象的可视化信息的类。
  */
 data class DetectionResult(val boundingBox: RectF, val text: String)
+data class latestDetectionResult(val boundingBox: RectF, val text: String)
+
