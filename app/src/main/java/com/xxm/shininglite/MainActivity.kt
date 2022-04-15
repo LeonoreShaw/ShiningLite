@@ -250,6 +250,8 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
                         runOnUiThread {
                             inputImageView.setImageBitmap(imgWithResult)
                         }
+                        Thread.sleep(50)
+
 //                        mmr.release()
 
 //                        if(i%4 ==0){
@@ -508,17 +510,31 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         }, ContextCompat.getMainExecutor(this))
     }
 
+    /**
+     * &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+     */
     private class LuminosityAnalyzer : ImageAnalysis.Analyzer {
-
+        /**     ByteBuffer转换byte array       **/
         private fun ByteBuffer.toByteArray(): ByteArray {
-            rewind()    // Rewind the buffer to zero
+            rewind()    // Rewind the buffer to zero 将缓冲区倒回零
             val data = ByteArray(remaining())
-            get(data)   // Copy the buffer into a byte array
-            return data // Return the byte array
+            get(data)   // Copy the buffer into a byte array 将缓冲区复制到字节数组中
+            return data // Return the byte array 返回字节数组
         }
 
-        override fun analyze(image: ImageProxy) {
+        //TODO toBitmap
 
+
+
+
+        //TODO detector
+
+
+
+
+        /**              **/
+        override fun analyze(image: ImageProxy) {
+        // find the bitmap from Preview View
             val buffer = image.planes[0].buffer
             val data = buffer.toByteArray()
             val pixels = data.map { it.toInt() and 0xFF }
@@ -555,12 +571,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // Step 2: Initialize the detector object
         // 第二步：初始化检测器对象
         val options = ObjectDetector.ObjectDetectorOptions.builder()
-            .setMaxResults(5)
+            .setMaxResults(1)
             .setScoreThreshold(0.3f)
             .build()
         val detector = ObjectDetector.createFromFileAndOptions(
             this,
-            "model.tflite",
+            "m2.tflite",
             options
         )
 
@@ -597,12 +613,12 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         // Step 2: Initialize the detector object
         // 第二步：初始化检测器对象
         val options = ObjectDetector.ObjectDetectorOptions.builder()
-            .setMaxResults(5)
+            .setMaxResults(1)
             .setScoreThreshold(0.3f)
             .build()
         val detector = ObjectDetector.createFromFileAndOptions(
             this,
-            "model.tflite",
+            "m2.tflite",
             options
         )
 
