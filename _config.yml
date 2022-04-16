@@ -1,39 +1,39 @@
-################################
-# Site Settings
-################################
-title       : Shining Lite
-description : Your awesome site
-author      : Léonore
-email       : leonoreshaw@gmail.com
+# ################################
+# # Site Settings
+# ################################
+# title       : Shining Lite
+# description : Your awesome site
+# author      : Léonore
+# email       : leonoreshaw@gmail.com
 
 
 ################################
 # Theme Settings
 ################################
 theme: jekyll-theme-minimal
-permalink   : /:title/
+# permalink   : /:title/
 
 
-# Navigation Menus
-header_navigation:
-  - title: Documentation
-    url: /docs/
+# # Navigation Menus
+# header_navigation:
+#   - title: Documentation
+#     url: /docs/
 
-  - title: Themes
-    url: https://desiredpersona.com/themes/
+#   - title: Themes
+#     url: https://desiredpersona.com/themes/
 
-  - title: About
-    url: /about/
+#   - title: About
+#     url: /about/
 
-  - title: Blog
-    url: /archive/
+#   - title: Blog
+#     url: /archive/
 
-  - title: Contact
-    url: mailto:you@example.com
+#   - title: Contact
+#     url: mailto:you@example.com
 
-footer_navigation:
-  - title: privacy
-    url: /privacy/
+# footer_navigation:
+#   - title: privacy
+#     url: /privacy/
 
-  - title: terms
-    url: /terms/
+#   - title: terms
+#     url: /terms/
