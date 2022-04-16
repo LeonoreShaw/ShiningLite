@@ -1,1 +1,11 @@
+################################
+# Site Settings
+################################
+title       : Shining Lite
+description : Your awesome site
+author      : Léonore
+email       : leonoreshaw@gmail.com
+
+
+
 theme: jekyll-theme-minimal
